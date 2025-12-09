@@ -2,7 +2,6 @@ from __future__ import annotations
 from enum import Enum
 
 from htmlnode import LeafNode
-from parser import split_nodes_delimiter, split_nodes_image, split_nodes_link
 
 
 class TextType(Enum):
@@ -54,14 +53,3 @@ def text_node_to_html_node(text_node: TextNode):
             if url is None:
                 url = ""
             return LeafNode("img", "", {"src": url, "alt": text_node.text})
-
-
-def text_to_textnodes(text: str) -> list[TextNode]:
-    nodes = [TextNode(text, TextType.TEXT, None)]
-    nodes = split_nodes_delimiter(nodes, "**", TextType.BOLD)
-    nodes = split_nodes_delimiter(nodes, "_", TextType.ITALIC)
-    nodes = split_nodes_delimiter(nodes, "`", TextType.CODE)
-    nodes = split_nodes_image(nodes)
-    nodes = split_nodes_link(nodes)
-
-    return nodes
