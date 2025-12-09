@@ -7,6 +7,7 @@ from parser import (
     split_nodes_image,
     split_nodes_link,
     text_to_textnodes,
+    markdown_to_blocks,
 )
 from textnode import TextNode, TextType
 
@@ -689,6 +690,90 @@ class TestTextToTextNodes(unittest.TestCase):
             ],
             nodes,
         )
+
+
+class TestMarkdownToBlocks(unittest.TestCase):
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_single_block(self):
+        md = "Just one block"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(["Just one block"], blocks)
+
+    def test_multiple_paragraphs(self):
+        md = "First paragraph\n\nSecond paragraph\n\nThird paragraph"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            ["First paragraph", "Second paragraph", "Third paragraph"], blocks
+        )
+
+    def test_leading_trailing_whitespace(self):
+        md = """
+        
+        First block with spaces
+        
+        Second block with spaces
+        
+        """
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            ["First block with spaces", "Second block with spaces"], blocks
+        )
+
+    def test_empty_blocks_removed(self):
+        md = "First block\n\n\n\nSecond block\n\n\nThird block"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(["First block", "Second block", "Third block"], blocks)
+
+    def test_multiline_blocks(self):
+        md = "First line\nSecond line\nThird line\n\nFourth line\nFifth line"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            ["First line\nSecond line\nThird line", "Fourth line\nFifth line"], blocks
+        )
+
+    def test_headings_and_paragraphs(self):
+        md = "# Heading 1\n\nParagraph text\n\n## Heading 2\n\nMore text"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            ["# Heading 1", "Paragraph text", "## Heading 2", "More text"], blocks
+        )
+
+    def test_lists_and_code(self):
+        md = "- List item 1\n- List item 2\n\n```\ncode block\n```\n\nParagraph"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual(
+            ["- List item 1\n- List item 2", "```\ncode block\n```", "Paragraph"],
+            blocks,
+        )
+
+    def test_empty_string(self):
+        md = ""
+        blocks = markdown_to_blocks(md)
+        self.assertEqual([], blocks)
+
+    def test_only_newlines(self):
+        md = "\n\n\n"
+        blocks = markdown_to_blocks(md)
+        self.assertEqual([], blocks)
 
 
 if __name__ == "__main__":
