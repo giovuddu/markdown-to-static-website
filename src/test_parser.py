@@ -6,6 +6,7 @@ from parser import (
     extract_markdown_links,
     split_nodes_image,
     split_nodes_link,
+    text_to_textnodes,
 )
 from textnode import TextNode, TextType
 
@@ -535,6 +536,158 @@ class TestSplitNodesLink(unittest.TestCase):
                 ),
             ],
             new_nodes,
+        )
+
+
+class TestTextToTextNodes(unittest.TestCase):
+    def test_text_to_textnodes_example(self):
+        text = "This is **text** with an _italic_ word and a `code block` and an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("text", TextType.BOLD),
+                TextNode(" with an ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" word and a ", TextType.TEXT),
+                TextNode("code block", TextType.CODE),
+                TextNode(" and an ", TextType.TEXT),
+                TextNode(
+                    "obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"
+                ),
+                TextNode(" and a ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://boot.dev"),
+            ],
+            nodes,
+        )
+
+    def test_plain_text(self):
+        text = "Just plain text"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual([TextNode("Just plain text", TextType.TEXT)], nodes)
+
+    def test_only_bold(self):
+        text = "**bold text**"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual([TextNode("bold text", TextType.BOLD)], nodes)
+
+    def test_only_italic(self):
+        text = "_italic text_"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual([TextNode("italic text", TextType.ITALIC)], nodes)
+
+    def test_only_code(self):
+        text = "`code text`"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual([TextNode("code text", TextType.CODE)], nodes)
+
+    def test_only_image(self):
+        text = "![alt text](https://example.com/image.png)"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [TextNode("alt text", TextType.IMAGE, "https://example.com/image.png")],
+            nodes,
+        )
+
+    def test_only_link(self):
+        text = "[link text](https://example.com)"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [TextNode("link text", TextType.LINK, "https://example.com")], nodes
+        )
+
+    def test_multiple_bold(self):
+        text = "This is **bold** and **more bold** text"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("more bold", TextType.BOLD),
+                TextNode(" text", TextType.TEXT),
+            ],
+            nodes,
+        )
+
+    def test_multiple_italic(self):
+        text = "This is _italic_ and _more italic_ text"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("more italic", TextType.ITALIC),
+                TextNode(" text", TextType.TEXT),
+            ],
+            nodes,
+        )
+
+    def test_multiple_code(self):
+        text = "This is `code` and `more code` text"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("code", TextType.CODE),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("more code", TextType.CODE),
+                TextNode(" text", TextType.TEXT),
+            ],
+            nodes,
+        )
+
+    def test_multiple_images(self):
+        text = "This is ![image1](https://example.com/1.png) and ![image2](https://example.com/2.png)"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("image1", TextType.IMAGE, "https://example.com/1.png"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("image2", TextType.IMAGE, "https://example.com/2.png"),
+            ],
+            nodes,
+        )
+
+    def test_multiple_links(self):
+        text = (
+            "This is [link1](https://example.com/1) and [link2](https://example.com/2)"
+        )
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("This is ", TextType.TEXT),
+                TextNode("link1", TextType.LINK, "https://example.com/1"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("link2", TextType.LINK, "https://example.com/2"),
+            ],
+            nodes,
+        )
+
+    def test_empty_string(self):
+        text = ""
+        nodes = text_to_textnodes(text)
+        self.assertListEqual([], nodes)
+
+    def test_text_with_special_characters(self):
+        text = "Text with **bold** and _italic_ and `code` and ![image](https://example.com/img.png) and [link](https://example.com)"
+        nodes = text_to_textnodes(text)
+        self.assertListEqual(
+            [
+                TextNode("Text with ", TextType.TEXT),
+                TextNode("bold", TextType.BOLD),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("italic", TextType.ITALIC),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("code", TextType.CODE),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("image", TextType.IMAGE, "https://example.com/img.png"),
+                TextNode(" and ", TextType.TEXT),
+                TextNode("link", TextType.LINK, "https://example.com"),
+            ],
+            nodes,
         )
 
 
