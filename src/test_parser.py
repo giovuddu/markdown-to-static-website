@@ -8,7 +8,9 @@ from parser import (
     split_nodes_link,
     text_to_textnodes,
     markdown_to_blocks,
+    block_to_block_type,
 )
+from block import BlockType
 from textnode import TextNode, TextType
 
 
@@ -774,6 +776,76 @@ This is the same paragraph on a new line
         md = "\n\n\n"
         blocks = markdown_to_blocks(md)
         self.assertEqual([], blocks)
+
+
+class TestBlockToBlockType(unittest.TestCase):
+    def test_heading(self):
+        block = "# Heading"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_heading_multiple_levels(self):
+        block = "###### Heading level 6"
+        self.assertEqual(block_to_block_type(block), BlockType.HEADING)
+
+    def test_code(self):
+        block = "```code block```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+
+    def test_code_multiline(self):
+        block = "```\ncode line 1\ncode line 2\n```"
+        self.assertEqual(block_to_block_type(block), BlockType.CODE)
+
+    def test_quote(self):
+        block = "> This is a quote"
+        self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
+
+    def test_quote_multiline(self):
+        block = "> First line\n> Second line\n> Third line"
+        self.assertEqual(block_to_block_type(block), BlockType.QUOTE)
+
+    def test_unordered_list(self):
+        block = "- Item 1"
+        self.assertEqual(block_to_block_type(block), BlockType.UNORDERED_LIST)
+
+    def test_unordered_list_multiple(self):
+        block = "- Item 1\n- Item 2\n- Item 3"
+        self.assertEqual(block_to_block_type(block), BlockType.UNORDERED_LIST)
+
+    def test_ordered_list(self):
+        block = "1. First item"
+        self.assertEqual(block_to_block_type(block), BlockType.ORDERED_LIST)
+
+    def test_ordered_list_multiple(self):
+        block = "1. First item\n2. Second item\n3. Third item"
+        self.assertEqual(block_to_block_type(block), BlockType.ORDERED_LIST)
+
+    def test_paragraph(self):
+        block = "This is a normal paragraph"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_paragraph_multiline(self):
+        block = "This is a paragraph\nwith multiple lines"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_heading_no_space(self):
+        block = "#No space after hash"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_code_not_closed(self):
+        block = "```unclosed code block"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_quote_missing_prefix(self):
+        block = "> First line\nSecond line without >"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_unordered_list_missing_space(self):
+        block = "-No space after dash"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
+
+    def test_ordered_list_missing_space(self):
+        block = "1.No space after dot"
+        self.assertEqual(block_to_block_type(block), BlockType.PARAGRAPH)
 
 
 if __name__ == "__main__":

@@ -1,4 +1,5 @@
 import re
+from block import BlockType
 from textnode import TextNode, TextType
 
 
@@ -114,3 +115,28 @@ def markdown_to_blocks(markdown: str) -> list[str]:
     return [
         x for x in map(lambda x: x.strip(), re.split(r"\n\s*?\n", markdown)) if x != ""
     ]
+
+
+def block_to_block_type(block: str) -> BlockType:
+    re_heading = re.compile(r"^#{1,6} .*$", re.DOTALL)
+    re_code = re.compile(r"^```.*```$", re.DOTALL)
+    re_quote = re.compile(r"^(?:>.*?\n)*(?:>.*?)$")
+    re_unordered_list = re.compile(r"^(?:- .*?\n)*(?:- .*?)$")
+    re_ordered_list = re.compile(r"^(?:\d\. .*?\n)*(?:\d\. .*?)$")
+
+    if re_heading.match(block):
+        return BlockType.HEADING
+    elif re_code.match(block):
+        return BlockType.CODE
+    elif re_quote.match(block):
+        return BlockType.QUOTE
+    elif re_unordered_list.match(block):
+        return BlockType.UNORDERED_LIST
+    elif re_ordered_list.match(block):
+        return BlockType.ORDERED_LIST
+    else:
+        return BlockType.PARAGRAPH
+
+
+def markdown_to_html_node(markdown: str):
+    pass
