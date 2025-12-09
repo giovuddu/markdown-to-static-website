@@ -4,9 +4,6 @@ from textnode import TextNode, TextType
 def split_node_delimiter(
     old_node: TextNode, delimiter: str, text_type: TextType
 ) -> list[TextNode]:
-    if delimiter not in old_node.text:
-        return [old_node]
-
     sp = old_node.text.split(delimiter, 1)
 
     if len(sp) <= 1:
@@ -15,10 +12,10 @@ def split_node_delimiter(
     left = TextNode(sp[0], TextType.TEXT)
     rest = sp[1]
 
-    if delimiter not in rest:
-        raise Exception(f"unmatched delimiter found in {old_node.text}")
-
     rest_sp = rest.split(delimiter, 1)
+
+    if len(rest_sp) <= 1:
+        raise Exception(f"unmatched delimiter found in {old_node.text}")
 
     mid = TextNode(rest_sp[0], text_type)
     right = TextNode(rest_sp[1], TextType.TEXT)
