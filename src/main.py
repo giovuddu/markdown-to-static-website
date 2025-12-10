@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 import shutil
 import re
@@ -18,12 +19,12 @@ def gen_public(project_root: Path):
 def extract_title(markdown: str) -> str:
     match = re.match(r"^# (.*?)\n\n", markdown.strip(), re.DOTALL)
     if match is None:
-        raise Exception("no header no bueno >:(")
+        raise Exception("no header no bueno >:(")  # )
 
     return match.group(1).strip()
 
 
-def generate_page(from_path: Path, template_path: Path, dest_path: Path):
+def generate_page(from_path: Path, template_path: Path, dest_path: Path, basepath: str):
     print(f"Generating page from {from_path} to {dest_path} using {template_path}")
 
     try:
@@ -36,22 +37,29 @@ def generate_page(from_path: Path, template_path: Path, dest_path: Path):
     html = markdown_to_html_node(content).to_html()
     title = extract_title(content)
 
-    html_text = template.replace("{{ Title }}", title).replace("{{ Content }}", html)
+    html_text = (
+        template.replace("{{ Title }}", title)
+        .replace("{{ Content }}", html)
+        .replace('href="/', f'href="{basepath}')
+        .replace('src="/', f'src="{basepath}')
+    )
 
     dest_path.parent.mkdir(parents=True, exist_ok=True)
     dest_path.write_text(html_text, encoding="utf-8")
 
 
-def generate_site(content_dir: Path, template_path: Path, public_dir: Path):
+def generate_site(
+    content_dir: Path, template_path: Path, public_dir: Path, basepath: str
+):
     for md_path in content_dir.rglob("*.md"):
         rel = md_path.relative_to(content_dir)
         out_rel = rel.with_suffix(".html")
         out_path = public_dir / out_rel
 
-        generate_page(md_path, template_path, out_path)
+        generate_page(md_path, template_path, out_path, basepath)
 
 
-def main():
+def main(basepath):
     here = Path(__file__).resolve().parent
     project_root = here.parent
 
@@ -60,9 +68,16 @@ def main():
     public_dir = project_root / "public"
 
     gen_public(project_root)
-    generate_site(content_dir, template_path, public_dir)
+    generate_site(content_dir, template_path, public_dir, basepath)
 
 
 if __name__ == "__main__":
-    main()
+    if (len(sys.argv) <= 1) or (type(sys.argv[1]) is not str):
+        basepath = "/"
+    else:
+        basepath = sys.argv[1]
 
+    if not basepath.startswith("/"):
+        basepath = "/" + basepath
+
+    main(basepath)
