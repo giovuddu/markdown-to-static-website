@@ -158,7 +158,7 @@ def conv_code_to_div(md: str) -> ParentNode:
 
 def conv_quote_to_div(md: str) -> ParentNode:
     quote_lines = md.split("\n")
-    text_content = "".join(map(lambda x: x[1:], quote_lines))
+    text_content = "<br>".join(map(lambda x: x[1:].strip(), quote_lines))
     html_leafs = list(map(text_node_to_html_node, text_to_text_nodes(text_content)))
 
     return ParentNode(tag="blockquote", children=html_leafs)
