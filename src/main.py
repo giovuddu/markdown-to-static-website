@@ -5,15 +5,15 @@ import re
 from parser import markdown_to_html_node
 
 
-def gen_public(project_root: Path):
+def gen_docs(project_root: Path):
     static_dir = project_root / "static"
-    public_dir = project_root / "public"
+    docs_dir = project_root / "docs"
 
-    if public_dir.exists():
-        shutil.rmtree(public_dir)
-    public_dir.mkdir(parents=True, exist_ok=True)
+    if docs_dir.exists():
+        shutil.rmtree(docs_dir)
+    docs_dir.mkdir(parents=True, exist_ok=True)
 
-    shutil.copytree(static_dir, public_dir, dirs_exist_ok=True)
+    shutil.copytree(static_dir, docs_dir, dirs_exist_ok=True)
 
 
 def extract_title(markdown: str) -> str:
@@ -49,12 +49,12 @@ def generate_page(from_path: Path, template_path: Path, dest_path: Path, basepat
 
 
 def generate_site(
-    content_dir: Path, template_path: Path, public_dir: Path, basepath: str
+    content_dir: Path, template_path: Path, docs_dir: Path, basepath: str
 ):
     for md_path in content_dir.rglob("*.md"):
         rel = md_path.relative_to(content_dir)
         out_rel = rel.with_suffix(".html")
-        out_path = public_dir / out_rel
+        out_path = docs_dir / out_rel
 
         generate_page(md_path, template_path, out_path, basepath)
 
@@ -65,10 +65,10 @@ def main(basepath):
 
     content_dir = project_root / "content"
     template_path = project_root / "template.html"
-    public_dir = project_root / "public"
+    docs_dir = project_root / "docs"
 
-    gen_public(project_root)
-    generate_site(content_dir, template_path, public_dir, basepath)
+    gen_docs(project_root)
+    generate_site(content_dir, template_path, docs_dir, basepath)
 
 
 if __name__ == "__main__":
